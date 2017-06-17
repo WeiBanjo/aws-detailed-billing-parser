@@ -254,9 +254,7 @@ def parse(config, verbose=False):
                         if config.check:
                             response = es.count(index=index_name, doc_type=config.es_doctype,
                                                 q='RecordId:{}'.format(json_row['RecordId']))
-                            if response and response.get('count', 0) > 0:
-                                print(processed_json)
-                            else:
+                            if not response or response.get('count', 0) == 0:
                                 yield json.dumps(processed_json)
                                 pbar.update(1)
             for recno, (success, result) in enumerate(helpers.streaming_bulk(es, documents(),
