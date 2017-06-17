@@ -308,9 +308,9 @@ def parse(config, verbose=False):
                             # FIXME: the way it was, `search_exists` will not suffice, since we'll need the document _id for the update operation; # noqa
                             # FIXME: use `es.search` with the following sample body: `{'query': {'match': {'RecordId': '43347302922535274380046564'}}}`; # noqa
                             # SEE: https://elasticsearch-py.readthedocs.org/en/master/api.html#elasticsearch.Elasticsearch.search; # noqa
-                            response = es.search_exists(index=index_name, doc_type=config.es_doctype,
-                                                        q='RecordId:{}'.format(json_row['RecordId']))
-                            if response:
+                            response = es.count(index=index_name, doc_type=config.es_doctype,
+                                                q='RecordId:{}'.format(json_row['RecordId']))
+                            if response and response.get('count', 0) > 0:
                                 if config.update:
                                     # TODO: requires _id from the existing document
                                     # FIXME: requires use of `es.search` method instead of `es.search_exists`
