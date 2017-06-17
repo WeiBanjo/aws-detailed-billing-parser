@@ -247,12 +247,18 @@ def parse(config, verbose=False):
             def documents():
                 for json_row in csv_file:
                     if not is_control_message(json_row, config):
+                        processed_json = utils.pre_process(json_row)
                         if config.debug:
-                            print(json.dumps(  # do not use 'echo()' here
-                                utils.pre_process(json_row)))
-                        yield json.dumps(utils.pre_process(json_row))
-                        pbar.update(1)
+                            print(json.dumps(processed_json))
 
+                        if config.check:
+                            response = es.count(index=index_name, doc_type=config.es_doctype,
+                                                q='RecordId:{}'.format(json_row['RecordId']))
+                            if response and response.get('count', 0) > 0:
+                                print(processed_json)
+                            else:
+                                yield json.dumps(processed_json)
+                                pbar.update(1)
             for recno, (success, result) in enumerate(helpers.streaming_bulk(es, documents(),
                                                                              index=index_name,
                                                                              doc_type=config.es_doctype,
